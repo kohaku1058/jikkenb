@@ -48,6 +48,7 @@ function get_unapplied () {
 
 if (count($argv) == 1) {
     echo $help;
+    exit();
 }
 if ($argv[1] == 'help') {
     echo $help;
