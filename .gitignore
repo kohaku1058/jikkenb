@@ -4,6 +4,7 @@ dist
 
 #env
 .env
+util/env.php
 
 # Log files
 npm-debug.log*
