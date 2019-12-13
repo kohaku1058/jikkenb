@@ -20,10 +20,12 @@ help: show help
 add: add change
 apply: apply changes
 delete <id>: delete change
+status: show status
 ';
 
 function load_dbupdate_data () {
     $json = file_get_contents('./log.json');
+    $json = $json ? $json : json_encode(['applied' => []]);
     return json_decode($json, true);
 }
 
@@ -61,10 +63,15 @@ if ($argv[1] == 'add') {
     $log = load_dbupdate_data();
     array_push($log['applied'], $time);
     save_dbupdate_data($log);
+    echo "\033[32madded:\033[0m ".$time;
 }
 if ($argv[1] == 'status') {
     echo "\033[31m未適用:\033[0m\n";
     foreach (get_unapplied() as $val) {
+        echo $val."\n";
+    }
+    echo "\033[32m適用済:\033[0m\n";
+    foreach (load_dbupdate_data()['applied'] as $val) {
         echo $val."\n";
     }
 }
@@ -75,6 +82,18 @@ if ($argv[1] == 'apply') {
         $log = load_dbupdate_data();
         array_push($log['applied'], $id);
         save_dbupdate_data($log);
-        echo "\033[32mapplied:\033[0m ".$id;
+        echo "\033[32mapplied:\033[0m ".$id."\n";
     }
+}
+if ($argv[1] == 'delete') {
+    $data = load_dbupdate_data();
+    foreach ($data['applied'] as $key => $val) {
+        $test = $argv[2];
+        if (preg_match("/$test/", $val)) {
+            unlink("./patchstack/$val.sql");
+            array_splice($data['applied'], $key, 1);
+            echo "\033[31mdeleted:\033[0m ".$val."\n";
+        }
+    }
+    save_dbupdate_data($data);
 }
